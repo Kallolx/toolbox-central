@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ToolsRouteImport } from './routes/tools'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
+import { Route as ToolsSlugRouteImport } from './routes/tools.$slug'
 
 const ToolsRoute = ToolsRouteImport.update({
   id: '/tools',
@@ -28,28 +29,36 @@ const ToolsIndexRoute = ToolsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ToolsRoute,
 } as any)
+const ToolsSlugRoute = ToolsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ToolsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/tools': typeof ToolsRouteWithChildren
+  '/tools/$slug': typeof ToolsSlugRoute
   '/tools/': typeof ToolsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/tools/$slug': typeof ToolsSlugRoute
   '/tools': typeof ToolsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/tools': typeof ToolsRouteWithChildren
+  '/tools/$slug': typeof ToolsSlugRoute
   '/tools/': typeof ToolsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/tools' | '/tools/'
+  fullPaths: '/' | '/tools' | '/tools/$slug' | '/tools/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/tools'
-  id: '__root__' | '/' | '/tools' | '/tools/'
+  to: '/' | '/tools/$slug' | '/tools'
+  id: '__root__' | '/' | '/tools' | '/tools/$slug' | '/tools/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -80,14 +89,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsIndexRouteImport
       parentRoute: typeof ToolsRoute
     }
+    '/tools/$slug': {
+      id: '/tools/$slug'
+      path: '/$slug'
+      fullPath: '/tools/$slug'
+      preLoaderRoute: typeof ToolsSlugRouteImport
+      parentRoute: typeof ToolsRoute
+    }
   }
 }
 
 interface ToolsRouteChildren {
+  ToolsSlugRoute: typeof ToolsSlugRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
 }
 
 const ToolsRouteChildren: ToolsRouteChildren = {
+  ToolsSlugRoute: ToolsSlugRoute,
   ToolsIndexRoute: ToolsIndexRoute,
 }
 
