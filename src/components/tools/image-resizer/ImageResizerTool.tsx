@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { UploadBox } from "@/components/shared/UploadBox";
-import { canvasToBlob, fileToDataURL, loadImage, stripExt } from "@/lib/image";
 import { download } from "@/lib/download";
+import { buildOutputFileName, getExtension } from "@/lib/file";
+import { canvasToBlob, fileToDataURL, loadImage } from "@/lib/image";
 
 export function ImageResizerTool() {
   const [file, setFile] = useState<File | null>(null);
@@ -47,31 +48,62 @@ export function ImageResizerTool() {
       ctx.imageSmoothingQuality = "high";
       ctx.drawImage(img, 0, 0, w, h);
       const blob = await canvasToBlob(canvas, "image/png");
-      setResult({ blob, url: URL.createObjectURL(blob), name: `${stripExt(file.name)}-${w}x${h}.png` });
+      setResult({
+        blob,
+        url: URL.createObjectURL(blob),
+        name: buildOutputFileName(file.name, "-resized", getExtension(file.name) || "png"),
+      });
       toast.success("Image resized.");
     } catch {
       toast.error("Resize failed.");
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
     <div className="space-y-5">
-      <UploadBox accept="image/*" file={file} onFileChange={(f) => { setFile(f); setResult(null); }} />
+      <UploadBox
+        accept="image/*"
+        file={file}
+        onFileChange={(f) => {
+          setFile(f);
+          setResult(null);
+        }}
+      />
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Width (px)"><NumInput value={w} onChange={setWidth} /></Field>
-        <Field label="Height (px)"><NumInput value={h} onChange={setHeight} /></Field>
+        <Field label="Width (px)">
+          <NumInput value={w} onChange={setWidth} />
+        </Field>
+        <Field label="Height (px)">
+          <NumInput value={h} onChange={setHeight} />
+        </Field>
       </div>
       <label className="flex items-center gap-2 text-sm text-text-secondary">
-        <input type="checkbox" checked={lock} onChange={(e) => setLock(e.target.checked)} className="accent-[#7C3AED]" />
+        <input
+          type="checkbox"
+          checked={lock}
+          onChange={(e) => setLock(e.target.checked)}
+          className="accent-[#7C3AED]"
+        />
         Lock aspect ratio
       </label>
-      <button onClick={onResize} disabled={busy || !file} className="w-full rounded-md bg-primary py-2.5 font-heading text-sm font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50">
+      <button
+        onClick={onResize}
+        disabled={busy || !file}
+        className="w-full rounded-md bg-primary py-2.5 font-heading text-sm font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
+      >
         {busy ? "Resizing..." : "Resize Image"}
       </button>
       {result && (
         <div className="rounded-md border border-border-muted bg-surface p-4">
           <img src={result.url} alt="" className="max-h-72 w-full rounded-md object-contain" />
-          <button onClick={() => download(result.blob, result.name)} className="mt-3 w-full rounded-md bg-primary py-2 text-sm font-medium text-primary-foreground hover:bg-primary-hover">Download</button>
+          <button
+            onClick={() => download(result.blob, result.name)}
+            className="mt-3 w-full rounded-md bg-primary py-2 text-sm font-medium text-primary-foreground hover:bg-primary-hover"
+          >
+            Download
+          </button>
         </div>
       )}
     </div>

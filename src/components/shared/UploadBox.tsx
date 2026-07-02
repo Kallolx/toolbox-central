@@ -4,32 +4,98 @@ import { cn } from "@/lib/utils";
 
 type UploadBoxProps = {
   accept?: string;
-  file: File | null;
-  onFileChange: (file: File | null) => void;
+  file?: File | null;
+  files?: File[];
+  multiple?: boolean;
+  onFileChange?: (file: File | null) => void;
+  onFilesChange?: (files: File[]) => void;
   label?: string;
   hint?: string;
 };
 
 export function UploadBox({
   accept = "image/*",
-  file,
+  file = null,
+  files,
+  multiple = false,
   onFileChange,
+  onFilesChange,
   label = "Drop file here or click to upload",
   hint,
 }: UploadBoxProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
 
-  const handleFiles = useCallback((files: FileList | null) => {
-    if (!files || files.length === 0) return;
-    onFileChange(files[0]);
-  }, [onFileChange]);
+  const handleFiles = useCallback(
+    (files: FileList | null) => {
+      if (!files || files.length === 0) return;
+      const selected = Array.from(files);
+      if (multiple) {
+        onFilesChange?.(selected);
+        return;
+      }
+      onFileChange?.(selected[0]);
+    },
+    [multiple, onFileChange, onFilesChange],
+  );
 
   const onDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragOver(false);
     handleFiles(e.dataTransfer.files);
   };
+
+  const hasFiles = files && files.length > 0;
+
+  if (hasFiles) {
+    const totalBytes = files.reduce((sum, item) => sum + item.size, 0);
+
+    return (
+      <div className="flex flex-col gap-3 rounded-md border border-border-muted bg-surface px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary-soft text-primary">
+            <FileIcon className="h-4 w-4" />
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium">
+              {files.length} image{files.length === 1 ? "" : "s"} selected
+            </p>
+            <p className="text-xs text-text-faint">
+              {(totalBytes / 1024 / 1024).toFixed(2)} MB total
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            className="h-8 rounded-md border border-border-muted px-3 text-xs font-medium text-text-secondary hover:bg-surface-2 hover:text-text-primary"
+          >
+            Add more
+          </button>
+          <button
+            type="button"
+            aria-label="Remove files"
+            onClick={() => onFilesChange?.([])}
+            className="grid h-8 w-8 place-items-center rounded-md text-text-muted hover:bg-surface-2 hover:text-text-primary"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <input
+          ref={inputRef}
+          type="file"
+          accept={accept}
+          multiple={multiple}
+          className="hidden"
+          onChange={(e) => {
+            handleFiles(e.target.files);
+            e.currentTarget.value = "";
+          }}
+        />
+      </div>
+    );
+  }
 
   if (file) {
     return (
@@ -61,7 +127,10 @@ export function UploadBox({
       tabIndex={0}
       onClick={() => inputRef.current?.click()}
       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && inputRef.current?.click()}
-      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragOver(true);
+      }}
       onDragLeave={() => setDragOver(false)}
       onDrop={onDrop}
       className={cn(
@@ -80,8 +149,12 @@ export function UploadBox({
         ref={inputRef}
         type="file"
         accept={accept}
+        multiple={multiple}
         className="hidden"
-        onChange={(e) => handleFiles(e.target.files)}
+        onChange={(e) => {
+          handleFiles(e.target.files);
+          e.currentTarget.value = "";
+        }}
       />
     </div>
   );

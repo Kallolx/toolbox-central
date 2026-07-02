@@ -14,23 +14,24 @@ export function Footer() {
             <span className="font-heading text-lg font-semibold">Toolune</span>
           </Link>
           <p className="mt-3 max-w-sm text-sm text-text-muted">
-            Toolune is a free collection of simple online tools for everyday work. Built by Softune.
+            Toolune is a free collection of simple online tools for everyday work.
           </p>
-          <p className="mt-3 text-xs text-text-faint">
+          <p className="mt-1 text-sm text-text-muted">Built by Softune.</p>
+          <p className="mt-3 max-w-sm text-xs text-text-faint">
             Most tools run in your browser. We do not store your files.
           </p>
         </div>
         <div>
           <h4 className="font-heading text-sm font-semibold">Categories</h4>
           <ul className="mt-3 space-y-2 text-sm">
-            {categories.map((c) => (
-              <li key={c.slug}>
+            {categories.map((category) => (
+              <li key={category.slug}>
                 <Link
                   to="/tools/$slug"
-                  params={{ slug: c.slug }}
+                  params={{ slug: category.slug }}
                   className="text-text-secondary hover:text-text-primary"
                 >
-                  {c.name}
+                  {category.name}
                 </Link>
               </li>
             ))}
@@ -39,14 +40,22 @@ export function Footer() {
         <div>
           <h4 className="font-heading text-sm font-semibold">Toolune</h4>
           <ul className="mt-3 space-y-2 text-sm">
-            <li><Link to="/tools" className="text-text-secondary hover:text-text-primary">All tools</Link></li>
-            <li><Link to="/" className="text-text-secondary hover:text-text-primary">Home</Link></li>
+            <li>
+              <Link to="/tools" className="text-text-secondary hover:text-text-primary">
+                All tools
+              </Link>
+            </li>
+            <li>
+              <Link to="/" className="text-text-secondary hover:text-text-primary">
+                Home
+              </Link>
+            </li>
           </ul>
         </div>
       </div>
       <div className="border-t border-border-muted">
         <div className="mx-auto max-w-7xl px-4 py-4 text-xs text-text-faint sm:px-6 lg:px-8">
-          © {new Date().getFullYear()} Toolune. Built by Softune.
+          (c) {new Date().getFullYear()} Toolune. Built by Softune.
         </div>
       </div>
     </footer>

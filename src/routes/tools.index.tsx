@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { z } from "zod";
 import { Search } from "lucide-react";
+import { z } from "zod";
 import { ToolGrid } from "@/components/shared/ToolCard";
 import { categories, tools } from "@/data/tools";
 
@@ -12,10 +12,13 @@ export const Route = createFileRoute("/tools/")({
   component: ToolsIndex,
   head: () => ({
     meta: [
-      { title: "All Tools — Toolune" },
-      { name: "description", content: "Browse every free online tool on Toolune. Image, link, text, color and utility tools." },
-      { property: "og:title", content: "All Tools — Toolune" },
-      { property: "og:description", content: "Browse every free tool on Toolune." },
+      { title: "All Tools - Toolune" },
+      {
+        name: "description",
+        content: "Browse free PDF, photo, print, scan, QR, student, office, and business tools.",
+      },
+      { property: "og:title", content: "All Tools - Toolune" },
+      { property: "og:description", content: "Browse every free everyday tool on Toolune." },
     ],
   }),
 });
@@ -27,13 +30,14 @@ function ToolsIndex() {
 
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
-    return tools.filter((t) => {
-      if (activeCat !== "all" && t.category !== activeCat) return false;
+    return tools.filter((tool) => {
+      if (activeCat !== "all" && tool.category !== activeCat) return false;
       if (!term) return true;
       return (
-        t.name.toLowerCase().includes(term) ||
-        t.description.toLowerCase().includes(term) ||
-        t.categoryName.toLowerCase().includes(term)
+        tool.name.toLowerCase().includes(term) ||
+        tool.description.toLowerCase().includes(term) ||
+        tool.categoryName.toLowerCase().includes(term) ||
+        tool.keywords.some((keyword) => keyword.toLowerCase().includes(term))
       );
     });
   }, [query, activeCat]);
@@ -42,7 +46,9 @@ function ToolsIndex() {
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-2">
         <h1 className="font-heading text-3xl font-semibold sm:text-4xl">All tools</h1>
-        <p className="text-sm text-text-muted">{tools.length} free tools, no signup needed.</p>
+        <p className="text-sm text-text-muted">
+          {tools.length} free PDF, photo, scan, QR, student, office, and business tools.
+        </p>
       </div>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -50,8 +56,8 @@ function ToolsIndex() {
           <Search className="pointer-events-none absolute left-3 h-4 w-4 text-text-muted" />
           <input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search tools..."
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search PDF, passport photo, QR, invoice..."
             className="h-full w-full bg-transparent pr-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none"
           />
         </div>
@@ -61,13 +67,13 @@ function ToolsIndex() {
         <FilterChip active={activeCat === "all"} onClick={() => setActiveCat("all")}>
           All
         </FilterChip>
-        {categories.map((c) => (
+        {categories.map((category) => (
           <FilterChip
-            key={c.slug}
-            active={activeCat === c.slug}
-            onClick={() => setActiveCat(c.slug)}
+            key={category.slug}
+            active={activeCat === category.slug}
+            onClick={() => setActiveCat(category.slug)}
           >
-            {c.name}
+            {category.navName}
           </FilterChip>
         ))}
       </div>
