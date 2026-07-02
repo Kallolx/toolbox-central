@@ -9,38 +9,72 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ToolsRouteImport } from './routes/tools'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ToolsIndexRouteImport } from './routes/tools.index'
+import { Route as ToolsSlugRouteImport } from './routes/tools.$slug'
 
+const ToolsRoute = ToolsRouteImport.update({
+  id: '/tools',
+  path: '/tools',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsIndexRoute = ToolsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ToolsRoute,
+} as any)
+const ToolsSlugRoute = ToolsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ToolsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/tools': typeof ToolsRouteWithChildren
+  '/tools/$slug': typeof ToolsSlugRoute
+  '/tools/': typeof ToolsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/tools/$slug': typeof ToolsSlugRoute
+  '/tools': typeof ToolsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/tools': typeof ToolsRouteWithChildren
+  '/tools/$slug': typeof ToolsSlugRoute
+  '/tools/': typeof ToolsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/tools' | '/tools/$slug' | '/tools/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/tools/$slug' | '/tools'
+  id: '__root__' | '/' | '/tools' | '/tools/$slug' | '/tools/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ToolsRoute: typeof ToolsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tools': {
+      id: '/tools'
+      path: '/tools'
+      fullPath: '/tools'
+      preLoaderRoute: typeof ToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +82,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools/': {
+      id: '/tools/'
+      path: '/'
+      fullPath: '/tools/'
+      preLoaderRoute: typeof ToolsIndexRouteImport
+      parentRoute: typeof ToolsRoute
+    }
+    '/tools/$slug': {
+      id: '/tools/$slug'
+      path: '/$slug'
+      fullPath: '/tools/$slug'
+      preLoaderRoute: typeof ToolsSlugRouteImport
+      parentRoute: typeof ToolsRoute
+    }
   }
 }
 
+interface ToolsRouteChildren {
+  ToolsSlugRoute: typeof ToolsSlugRoute
+  ToolsIndexRoute: typeof ToolsIndexRoute
+}
+
+const ToolsRouteChildren: ToolsRouteChildren = {
+  ToolsSlugRoute: ToolsSlugRoute,
+  ToolsIndexRoute: ToolsIndexRoute,
+}
+
+const ToolsRouteWithChildren = ToolsRoute._addFileChildren(ToolsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ToolsRoute: ToolsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
